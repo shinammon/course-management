@@ -1,5 +1,8 @@
 from flask import Flask
 from routes import api
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
