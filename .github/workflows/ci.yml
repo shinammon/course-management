@@ -1,10 +1,7 @@
-name: CI
+name: CI-CD
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
     branches:
       - main
 
@@ -13,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  test-build-push:
+  test-build-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -41,7 +38,6 @@ jobs:
           aws-region: us-east-1
 
       - name: Login to Amazon ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
@@ -57,3 +53,17 @@ jobs:
         run: |
           docker push \
           800460064208.dkr.ecr.us-east-1.amazonaws.com/course-management:${{ github.sha }}
+
+      - name: Deploy to EC2 with SSM
+        run: |
+          aws ssm send-command \
+            --instance-ids "i-0d970fc119f5bb6ce" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy course-management ${{ github.sha }}" \
+            --parameters 'commands=[
+              "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 800460064208.dkr.ecr.us-east-1.amazonaws.com",
+              "docker pull 800460064208.dkr.ecr.us-east-1.amazonaws.com/course-management:${{ github.sha }}",
+              "docker stop course-management-app || true",
+              "docker rm course-management-app || true",
+              "docker run -d --restart unless-stopped -p 5000:5000 --name course-management-app 800460064208.dkr.ecr.us-east-1.amazonaws.com/course-management:${{ github.sha }}"
+            ]'
