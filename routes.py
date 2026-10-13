@@ -1,5 +1,8 @@
+import os
+
 from flask import Blueprint, jsonify, request
 from data import courses, students, enrollments
+from db import get_db_connection
 
 api = Blueprint("api", __name__)
 
@@ -13,8 +16,27 @@ def health():
 
 @api.route("/courses", methods=["GET"])
 def get_courses():
-    return jsonify(courses)
+    use_rds = os.getenv("USE_RDS", "false").lower() == "true"
 
+    if not use_rds:
+        return jsonify(courses)
+
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT id, name, category, level
+                FROM courses
+                ORDER BY id
+            """)
+
+            result = cursor.fetchall()
+
+        return jsonify(result)
+
+    finally:
+        connection.close()
 
 @api.route("/students", methods=["GET"])
 def get_students():
