@@ -40,13 +40,62 @@ def get_courses():
 
 @api.route("/students", methods=["GET"])
 def get_students():
-    return jsonify(students)
+    use_rds = os.getenv("USE_RDS", "false").lower() == "true"
+
+    if not use_rds:
+        return jsonify(students)
+
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT id, name, email
+                FROM students
+                ORDER BY id
+            """)
+
+            result = cursor.fetchall()
+
+        return jsonify(result)
+
+    finally:
+        connection.close()
 
 
 @api.route("/enrollments", methods=["GET"])
 def get_enrollments():
-    return jsonify(enrollments)
+    use_rds = os.getenv("USE_RDS", "false").lower() == "true"
 
+    if not use_rds:
+        return jsonify(enrollments)
+
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    e.id,
+                    e.student_id,
+                    s.name AS student_name,
+                    e.course_id,
+                    c.name AS course_name,
+                    e.created_at
+                FROM enrollments e
+                JOIN students s
+                    ON e.student_id = s.id
+                JOIN courses c
+                    ON e.course_id = c.id
+                ORDER BY e.id
+            """)
+
+            result = cursor.fetchall()
+
+        return jsonify(result)
+
+    finally:
+        connection.close()
 
 @api.route("/enrollments", methods=["POST"])
 def create_enrollment():
@@ -65,16 +114,52 @@ def create_enrollment():
             "error": "student_id and course_id are required"
         }), 400
 
-    new_enrollment = {
-        "id": len(enrollments) + 1,
-        "student_id": student_id,
-        "course_id": course_id
-    }
+    use_rds = os.getenv("USE_RDS", "false").lower() == "true"
 
-    enrollments.append(new_enrollment)
+    # 本機 / CI 使用 mock data
+    if not use_rds:
+        new_enrollment = {
+            "id": len(enrollments) + 1,
+            "student_id": student_id,
+            "course_id": course_id
+        }
 
-    return jsonify(new_enrollment), 201
+        enrollments.append(new_enrollment)
 
+        return jsonify(new_enrollment), 201
+
+    # AWS 正式環境使用 RDS
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO enrollments (student_id, course_id)
+                VALUES (%s, %s)
+                """,
+                (student_id, course_id)
+            )
+
+            connection.commit()
+
+            new_id = cursor.lastrowid
+
+        return jsonify({
+            "id": new_id,
+            "student_id": student_id,
+            "course_id": course_id
+        }), 201
+
+    except Exception as e:
+        connection.rollback()
+
+        return jsonify({
+            "error": str(e)
+        }), 400
+
+    finally:
+        connection.close()
 
 @api.route("/recommend", methods=["POST"])
 def recommend():
