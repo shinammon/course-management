@@ -62,11 +62,17 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --comment "Deploy course-management ${{ github.sha }}" \
             --parameters 'commands=[
+              "DB_HOST=$(aws ssm get-parameter --name /course-management/db/host --query Parameter.Value --output text)",
+              "DB_USER=$(aws ssm get-parameter --name /course-management/db/user --query Parameter.Value --output text)",
+              "DB_PASSWORD=$(aws ssm get-parameter --name /course-management/db/password --with-decryption --query Parameter.Value --output text)",
+              "DB_NAME=$(aws ssm get-parameter --name /course-management/db/name --query Parameter.Value --output text)",
+              "DB_PORT=$(aws ssm get-parameter --name /course-management/db/port --query Parameter.Value --output text)",
+              "USE_RDS=$(aws ssm get-parameter --name /course-management/app/use-rds --query Parameter.Value --output text)",
               "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 800460064208.dkr.ecr.us-east-1.amazonaws.com",
               "docker pull 800460064208.dkr.ecr.us-east-1.amazonaws.com/course-management:${{ github.sha }}",
               "docker stop course-management-app || true",
               "docker rm course-management-app || true",
-              "docker run -d --restart unless-stopped -p 5000:5000 --name course-management-app 800460064208.dkr.ecr.us-east-1.amazonaws.com/course-management:${{ github.sha }}",
+              "docker run -d --restart unless-stopped -p 5000:5000 --name course-management-app -e USE_RDS=$USE_RDS -e DB_HOST=$DB_HOST -e DB_USER=$DB_USER -e DB_PASSWORD=$DB_PASSWORD -e DB_NAME=$DB_NAME -e DB_PORT=$DB_PORT 800460064208.dkr.ecr.us-east-1.amazonaws.com/course-management:${{ github.sha }}",
               "for i in $(seq 1 10); do curl -fsS http://localhost:5000/health && exit 0; sleep 3; done; exit 1"
             ]' \
             --query "Command.CommandId" \
