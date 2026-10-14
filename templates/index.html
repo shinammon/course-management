@@ -220,6 +220,15 @@ async function getRecommendations() {
 
         result.innerHTML = "<h3>推薦結果</h3>";
 
+        if (!data.recommendations || data.recommendations.length === 0) {
+            result.innerHTML += `
+                <div class="recommend-item">
+                    目前沒有符合你學習目標的課程。
+                </div>
+            `;
+            return;
+        }
+
         data.recommendations.forEach(course => {
 
             const item = document.createElement("div");
@@ -228,7 +237,15 @@ async function getRecommendations() {
 
             item.innerHTML = `
                 <strong>${course.course_name}</strong>
-                <p>${course.reason}</p>
+
+                <p>
+                    <strong>相關度：</strong>
+                    ${course.relevance_score}%
+                </p>
+
+                <p>
+                    ${course.reason}
+                </p>
             `;
 
             result.appendChild(item);

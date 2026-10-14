@@ -176,7 +176,10 @@ def recommend():
             "error": "goal is required"
         }), 400
 
-    use_rds = os.getenv("USE_RDS", "false").lower() == "true"
+    use_rds = os.getenv(
+        "USE_RDS",
+        "false"
+    ).lower() == "true"
 
     if use_rds:
         connection = get_db_connection()
@@ -184,7 +187,11 @@ def recommend():
         try:
             with connection.cursor() as cursor:
                 cursor.execute("""
-                    SELECT id, name, category, level
+                    SELECT
+                        id,
+                        name,
+                        category,
+                        level
                     FROM courses
                     ORDER BY id
                 """)
@@ -205,11 +212,14 @@ def recommend():
 
         return jsonify({
             "goal": goal,
-            "recommendations": result["recommendations"]
+            "recommendations":
+                result["recommendations"]
         })
 
     except Exception as e:
         return jsonify({
-            "error": "AI recommendation failed",
-            "detail": str(e)
+            "error":
+                "AI recommendation failed",
+            "detail":
+                str(e)
         }), 500
