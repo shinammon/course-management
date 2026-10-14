@@ -3,6 +3,7 @@ import os
 from flask import Blueprint, jsonify, request
 from data import courses, students, enrollments
 from db import get_db_connection
+from ai_service import recommend_courses
 
 api = Blueprint("api", __name__)
 
@@ -12,7 +13,6 @@ def health():
     return jsonify({
         "status": "ok"
     })
-
 
 @api.route("/courses", methods=["GET"])
 def get_courses():
@@ -61,7 +61,6 @@ def get_students():
 
     finally:
         connection.close()
-
 
 @api.route("/enrollments", methods=["GET"])
 def get_enrollments():
@@ -170,20 +169,47 @@ def recommend():
             "error": "Request body is required"
         }), 400
 
-    goal = data.get("goal", "")
+    goal = data.get("goal", "").strip()
 
-    return jsonify({
-        "goal": goal,
-        "recommendations": [
-            {
-                "course_id": 2,
-                "course_name": "Docker 容器化實戰",
-                "reason": "適合想學習部署與容器化技術的學員"
-            },
-            {
-                "course_id": 3,
-                "course_name": "AWS 雲端部署入門",
-                "reason": "適合想學習 AWS 與雲端部署流程的學員"
-            }
-        ]
-    })
+    if not goal:
+        return jsonify({
+            "error": "goal is required"
+        }), 400
+
+    use_rds = os.getenv("USE_RDS", "false").lower() == "true"
+
+    if use_rds:
+        connection = get_db_connection()
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, name, category, level
+                    FROM courses
+                    ORDER BY id
+                """)
+
+                course_list = cursor.fetchall()
+
+        finally:
+            connection.close()
+
+    else:
+        course_list = courses
+
+    try:
+        result = recommend_courses(
+            goal=goal,
+            courses=course_list
+        )
+
+        return jsonify({
+            "goal": goal,
+            "recommendations": result["recommendations"]
+        })
+
+    except Exception as e:
+        return jsonify({
+            "error": "AI recommendation failed",
+            "detail": str(e)
+        }), 500
