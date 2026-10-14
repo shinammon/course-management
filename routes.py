@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request
 from data import courses, students, enrollments
 from db import get_db_connection
 from ai_service import recommend_courses
+from s3_service import generate_image_url
 
 api = Blueprint("api", __name__)
 
@@ -26,12 +27,17 @@ def get_courses():
     try:
         with connection.cursor() as cursor:
             cursor.execute("""
-                SELECT id, name, category, level
+                SELECT id, name, category, level, image_key
                 FROM courses
                 ORDER BY id
             """)
 
             result = cursor.fetchall()
+
+            for course in result:
+                course["image_url"] = generate_image_url(
+                    course.get("image_key")
+                )
 
         return jsonify(result)
 
