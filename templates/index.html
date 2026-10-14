@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>課程管理系統</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background-color: #f5f6f8;
+            color: #333;
+        }
+
+        header {
+            background-color: #232f3e;
+            color: white;
+            padding: 20px 40px;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .course-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .course-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .course-item h3 {
+            margin-top: 0;
+        }
+
+        .course-item p {
+            margin: 6px 0;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            resize: vertical;
+            font-size: 16px;
+        }
+
+        button {
+            margin-top: 12px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background-color: #ff9900;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .recommend-item {
+            margin-top: 14px;
+            padding: 14px;
+            background-color: #f8f8f8;
+            border-left: 4px solid #ff9900;
+        }
+
+        .loading {
+            color: #666;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>課程管理系統</h1>
+</header>
+
+<main>
+
+    <section class="card">
+        <h2>課程列表</h2>
+
+        <div id="course-list" class="course-list">
+            <p class="loading">課程載入中...</p>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>AI 課程推薦</h2>
+
+        <p>請輸入你的學習目標：</p>
+
+        <textarea
+            id="goal"
+            placeholder="例如：我想學習 Docker、AWS 與 CI/CD，未來希望從事雲端工程相關工作。"
+        ></textarea>
+
+        <button onclick="getRecommendations()">
+            取得推薦
+        </button>
+
+        <div id="recommendation-result"></div>
+    </section>
+
+</main>
+
+
+<script>
+
+async function loadCourses() {
+
+    const courseList = document.getElementById("course-list");
+
+    try {
+
+        const response = await fetch("/courses");
+
+        if (!response.ok) {
+            throw new Error("無法取得課程資料");
+        }
+
+        const courses = await response.json();
+
+        courseList.innerHTML = "";
+
+        courses.forEach(course => {
+
+            const item = document.createElement("div");
+
+            item.className = "course-item";
+
+            item.innerHTML = `
+                <h3>${course.name}</h3>
+                <p><strong>分類：</strong>${course.category}</p>
+                <p><strong>程度：</strong>${course.level}</p>
+            `;
+
+            courseList.appendChild(item);
+        });
+
+    } catch (error) {
+
+        courseList.innerHTML =
+            `<p class="error">${error.message}</p>`;
+    }
+}
+
+
+async function getRecommendations() {
+
+    const goal = document.getElementById("goal").value.trim();
+
+    const result =
+        document.getElementById("recommendation-result");
+
+    if (!goal) {
+        result.innerHTML =
+            `<p class="error">請輸入學習目標。</p>`;
+        return;
+    }
+
+    result.innerHTML =
+        `<p class="loading">正在分析學習目標...</p>`;
+
+    try {
+
+        const response = await fetch("/recommend", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                goal: goal
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error("推薦服務發生錯誤");
+        }
+
+        const data = await response.json();
+
+        result.innerHTML = "<h3>推薦結果</h3>";
+
+        data.recommendations.forEach(course => {
+
+            const item = document.createElement("div");
+
+            item.className = "recommend-item";
+
+            item.innerHTML = `
+                <strong>${course.course_name}</strong>
+                <p>${course.reason}</p>
+            `;
+
+            result.appendChild(item);
+        });
+
+    } catch (error) {
+
+        result.innerHTML =
+            `<p class="error">${error.message}</p>`;
+    }
+}
+
+
+loadCourses();
+
+</script>
+
+</body>
+</html>
