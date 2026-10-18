@@ -17,32 +17,42 @@ def health():
 
 @api.route("/courses", methods=["GET"])
 def get_courses():
-    use_rds = os.getenv("USE_RDS", "false").lower() == "true"
+    use_rds = os.getenv(
+        "USE_RDS",
+        "false"
+    ).lower() == "true"
 
-    if not use_rds:
-        return jsonify(courses)
+    if use_rds:
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT
+                        id,
+                        name,
+                        category,
+                        level,
+                        image_key
+                    FROM courses
+                    ORDER BY id
+                """)
+                course_list = cursor.fetchall()
+        finally:
+            connection.close()
+    else:
+        # 本機使用 Mock Data
+        course_list = courses
+    result = []
 
-    connection = get_db_connection()
+    for course in course_list:
+        item = dict(course)
 
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT id, name, category, level, image_key
-                FROM courses
-                ORDER BY id
-            """)
+        item["image_url"] = generate_image_url(
+            item.get("image_key")
+        )
+        result.append(item)
 
-            result = cursor.fetchall()
-
-            for course in result:
-                course["image_url"] = generate_image_url(
-                    course.get("image_key")
-                )
-
-        return jsonify(result)
-
-    finally:
-        connection.close()
+    return jsonify(result)
 
 @api.route("/students", methods=["GET"])
 def get_students():
