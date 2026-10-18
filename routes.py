@@ -5,6 +5,7 @@ from data import courses, students, enrollments
 from db import get_db_connection
 from ai_service import recommend_courses
 from s3_service import generate_image_url
+from botocore.exceptions import NoCredentialsError
 
 api = Blueprint("api", __name__)
 
@@ -24,6 +25,7 @@ def get_courses():
 
     if use_rds:
         connection = get_db_connection()
+
         try:
             with connection.cursor() as cursor:
                 cursor.execute("""
@@ -36,20 +38,35 @@ def get_courses():
                     FROM courses
                     ORDER BY id
                 """)
+
                 course_list = cursor.fetchall()
+
         finally:
             connection.close()
+
     else:
-        # 本機使用 Mock Data
         course_list = courses
+
     result = []
 
     for course in course_list:
         item = dict(course)
 
-        item["image_url"] = generate_image_url(
-            item.get("image_key")
-        )
+        image_key = item.get("image_key")
+
+        if image_key:
+            try:
+                item["image_url"] = generate_image_url(
+                    image_key
+                )
+
+            except NoCredentialsError:
+                # CI / 無 AWS 登入的本機環境
+                # 不讓 S3 credentials 影響課程 API
+                item["image_url"] = None
+        else:
+            item["image_url"] = None
+
         result.append(item)
 
     return jsonify(result)
