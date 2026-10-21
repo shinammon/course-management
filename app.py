@@ -20,9 +20,5 @@ def students_page():
 def enrollments_page():
     return render_template("enrollments.html")
 
-@app.route("/recommend-page")
-def recommend_page():
-    return render_template("recommend.html")
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
