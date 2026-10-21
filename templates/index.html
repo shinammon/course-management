@@ -1,246 +1,608 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>課程管理系統</title>
+{% extends "base.html" %}
+
+
+{% block title %}
+課程管理系統
+{% endblock %}
+
+
+{% block head %}
 
 <style>
-:root{
-    --primary:#2563eb;
-    --primary-dark:#1d4ed8;
-    --primary-light:#eff6ff;
-    --purple:#7c3aed;
-    --text:#0f172a;
-    --text-secondary:#475569;
-    --muted:#64748b;
-    --border:#e2e8f0;
-    --background:#f8fafc;
-    --white:#ffffff;
-    --shadow:0 12px 35px rgba(15,23,42,.08);
-}
+    /* =========================
+       Hero
+    ========================= */
 
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;font-family:"Segoe UI","Noto Sans TC",Arial,sans-serif;color:var(--text);background:var(--background)}
-button,input,select{font:inherit}
-button{cursor:pointer}
-.container{width:min(1480px,calc(100% - 48px));margin:0 auto}
+    .hero {
+        background:
+            radial-gradient(
+                circle at 80% 20%,
+                rgba(37, 99, 235, .18),
+                transparent 28%
+            ),
+            linear-gradient(
+                135deg,
+                #eff6ff,
+                #f8fbff 55%,
+                #eef2ff
+            );
 
-/* Navbar */
-.navbar{
-    position:sticky;
-    top:0;
-    z-index:100;
-    background:rgba(255,255,255,.96);
-    backdrop-filter:blur(12px);
-    border-bottom:1px solid var(--border);
-}
+        border-bottom: 1px solid #dbeafe;
+    }
 
-.nav-content{height:72px;display:flex;align-items:center;gap:32px}
-.brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;white-space:nowrap}
-.brand-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:var(--primary-light);font-size:22px}
-.nav-links{display:flex;gap:26px;font-weight:600}
-.nav-links a{color:var(--text-secondary);text-decoration:none;transition:.2s}
-.nav-links a:hover,.nav-links a.active{color:var(--primary)}
-.nav-spacer{flex:1}
-.nav-search{width:250px}
-.nav-search input{width:100%;padding:11px 15px;border:1px solid var(--border);border-radius:12px;outline:none;background:white}
-.avatar{width:40px;height:40px;display:grid;place-items:center;border-radius:50%;background:var(--primary);color:white;font-weight:700}
+    .hero-content {
+        min-height: 430px;
+        display: grid;
+        grid-template-columns: 1.1fr .9fr;
+        align-items: center;
+        gap: 50px;
+        padding: 55px 0;
+    }
 
-/* Hero */
-.hero{
-    background:radial-gradient(circle at 80% 20%,rgba(37,99,235,.18),transparent 28%),linear-gradient(135deg,#eff6ff,#f8fbff 55%,#eef2ff);
-    border-bottom:1px solid #dbeafe;
-}
+    .hero h1 {
+        margin: 0 0 20px;
+        font-size: clamp(40px, 5vw, 64px);
+        line-height: 1.08;
+        letter-spacing: -1px;
+    }
 
-.hero-content{min-height:430px;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:50px;padding:55px 0}
-.hero h1{margin:0 0 20px;font-size:clamp(40px,5vw,64px);line-height:1.08;letter-spacing:-1px}
-.hero h1 span{color:var(--primary)}
-.hero-description{max-width:650px;margin-bottom:28px;color:var(--text-secondary);font-size:18px;line-height:1.7}
+    .hero h1 span {
+        color: var(--primary);
+    }
 
-.hero-search{display:flex;gap:10px;max-width:680px}
-.hero-search input{flex:1;min-width:0;padding:15px 18px;border:1px solid #cbd5e1;border-radius:14px;outline:none;background:white;box-shadow:0 8px 25px rgba(15,23,42,.05)}
-.primary-button{padding:14px 22px;border:none;border-radius:14px;background:var(--primary);color:white;font-weight:700}
-.primary-button:hover{background:var(--primary-dark)}
+    .hero-description {
+        max-width: 650px;
+        margin-bottom: 28px;
+        color: var(--text-secondary);
+        font-size: 18px;
+        line-height: 1.7;
+    }
 
-.keywords{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:17px;font-size:14px;color:var(--muted)}
-.keyword{padding:7px 12px;border:1px solid #dbeafe;border-radius:999px;background:rgba(255,255,255,.8);color:#334155}
+    .hero-search {
+        display: flex;
+        gap: 10px;
+        max-width: 680px;
+    }
 
-.hero-card{padding:32px;border:1px solid #bfdbfe;border-radius:28px;background:rgba(255,255,255,.9);box-shadow:0 24px 65px rgba(37,99,235,.14)}
-.hero-card-icon{font-size:68px}
-.hero-card h3{margin:12px 0 8px;font-size:26px}
-.hero-card p{color:var(--muted);line-height:1.6}
+    .hero-search input {
+        flex: 1;
+        min-width: 0;
+        padding: 15px 18px;
+        border: 1px solid #cbd5e1;
+        border-radius: 14px;
+        outline: none;
+        background: white;
+        box-shadow: 0 8px 25px rgba(15, 23, 42, .05);
+    }
 
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:25px}
-.stat{padding:15px;text-align:center;border-radius:14px;background:#f8fafc}
-.stat strong{display:block;margin-bottom:3px;color:var(--primary);font-size:20px}
+    .primary-button {
+        padding: 14px 22px;
+        border: none;
+        border-radius: 14px;
+        background: var(--primary);
+        color: white;
+        font-weight: 700;
+    }
 
-/* Main */
-main{padding:35px 0 65px}
+    .primary-button:hover {
+        background: var(--primary-dark);
+    }
 
-/* AI */
-.ai-panel{
-    display:grid;
-    grid-template-columns:1fr 320px;
-    gap:28px;
-    margin-top:42px;
-    padding:28px;
-    border:1px solid #ddd6fe;
-    border-radius:24px;
-    background:linear-gradient(135deg,#eef2ff,#faf5ff);
-    box-shadow:var(--shadow);
-}
+    .keywords {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-top: 17px;
+        font-size: 14px;
+        color: var(--muted);
+    }
 
-.ai-title{display:flex;align-items:center;gap:13px}
-.ai-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:14px;background:#ede9fe;color:var(--purple);font-size:23px}
-.ai-title h2{margin:0;font-size:25px}
-.ai-description{margin:10px 0 20px;color:var(--muted)}
+    .keyword {
+        padding: 7px 12px;
+        border: 1px solid #dbeafe;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .8);
+        color: #334155;
+    }
 
-.ai-input-row{display:flex;gap:10px}
-.ai-input-row input{flex:1;min-width:0;padding:14px 16px;border:1px solid #cbd5e1;border-radius:14px;outline:none}
-.ai-button{padding:14px 20px;border:none;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:white;font-weight:700}
+    .hero-card {
+        padding: 32px;
+        border: 1px solid #bfdbfe;
+        border-radius: 28px;
+        background: rgba(255, 255, 255, .9);
+        box-shadow: 0 24px 65px rgba(37, 99, 235, .14);
+    }
 
-.ai-examples{padding-left:22px;border-left:1px solid #ddd6fe}
-.ai-examples h4{margin:0 0 13px}
-.example{margin-bottom:9px;padding:11px 13px;border:1px solid #ede9fe;border-radius:12px;background:rgba(255,255,255,.8);font-size:14px;cursor:pointer}
+    .hero-card-icon {
+        font-size: 68px;
+    }
 
-#aiResult{display:none;grid-column:1/-1;padding-top:22px;border-top:1px solid #ddd6fe}
-.recommend-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.recommend-card{padding:18px;border:1px solid #e9d5ff;border-radius:16px;background:white}
-.recommend-card h3{margin:8px 0}
-.recommend-card p{margin:0;color:var(--muted);line-height:1.6}
-.score{display:inline-block;padding:5px 9px;border-radius:999px;background:#f3e8ff;color:#6d28d9;font-size:12px;font-weight:700}
+    .hero-card h3 {
+        margin: 12px 0 8px;
+        font-size: 26px;
+    }
 
-/* Course */
-.course-header{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:18px}
-.course-header h2{margin:0;font-size:28px}
-.course-header p{margin:7px 0 0;color:var(--muted)}
+    .hero-card p {
+        color: var(--muted);
+        line-height: 1.6;
+    }
 
-.course-tools{display:flex;flex-wrap:wrap;gap:9px}
-.course-tools input,.course-tools select{padding:11px 13px;border:1px solid var(--border);border-radius:12px;outline:none;background:white}
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 25px;
+    }
 
-.category-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
-.category-tabs button{padding:8px 14px;border:1px solid var(--border);border-radius:999px;background:white;color:#475569;font-weight:600}
-.category-tabs button.active{border-color:var(--primary);background:var(--primary);color:white}
+    .stat {
+        padding: 15px;
+        text-align: center;
+        border-radius: 14px;
+        background: #f8fafc;
+    }
 
-.course-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px}
+    .stat strong {
+        display: block;
+        margin-bottom: 3px;
+        color: var(--primary);
+        font-size: 20px;
+    }
 
-.course-card{
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
-    border:1px solid #e5e7eb;
-    border-radius:19px;
-    background:white;
-    box-shadow:0 10px 30px rgba(15,23,42,.06);
-    transition:.2s;
-}
 
-.course-card:hover{transform:translateY(-5px);box-shadow:0 18px 45px rgba(15,23,42,.12)}
+    /* =========================
+       Main
+    ========================= */
 
-.course-image{position:relative;overflow:hidden;aspect-ratio:16/9;background:#e2e8f0}
-.course-image img{width:100%;height:100%;display:block;object-fit:cover}
-.course-category{position:absolute;top:12px;left:12px;padding:6px 10px;border-radius:999px;background:rgba(15,23,42,.82);color:white;font-size:12px;font-weight:700}
+    .home-main {
+        padding: 35px 0 65px;
+    }
 
-.course-body{flex:1;display:flex;flex-direction:column;padding:18px}
-.course-body h3{margin:0 0 10px;font-size:18px;line-height:1.4}
-.course-description{margin:0;color:var(--muted);line-height:1.6;font-size:14px;min-height:68px}
-.course-meta{display:flex;flex-wrap:wrap;gap:12px;margin-top:auto;padding-top:16px;color:var(--muted);font-size:12px}
 
-.empty{grid-column:1/-1;padding:45px 20px;text-align:center;border:1px dashed #cbd5e1;border-radius:18px;background:white;color:var(--muted)}
+    /* =========================
+       Course
+    ========================= */
 
-/* Footer */
-footer{padding:30px 0;background:#0f172a;color:#cbd5e1}
+    .course-header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 18px;
+    }
 
-/* Responsive */
-@media(max-width:1400px){
-    .course-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-}
+    .course-header h2 {
+        margin: 0;
+        font-size: 28px;
+    }
 
-@media(max-width:1100px){
-    .course-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
+    .course-header p {
+        margin: 7px 0 0;
+        color: var(--muted);
+    }
 
-@media(max-width:950px){
-    .nav-links,.nav-search{display:none}
-    .hero-content,.ai-panel{grid-template-columns:1fr}
-    .ai-examples{padding:20px 0 0;border-left:0;border-top:1px solid #ddd6fe}
-    .recommend-grid{grid-template-columns:1fr}
-}
+    .course-tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px;
+    }
 
-@media(max-width:768px){
-    .course-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
+    .course-tools input,
+    .course-tools select {
+        padding: 11px 13px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        outline: none;
+        background: white;
+    }
 
-@media(max-width:650px){
-    .container{width:calc(100% - 24px)}
-    .hero-search,.ai-input-row{flex-direction:column}
-    .course-header{align-items:stretch;flex-direction:column}
-    .course-tools{flex-direction:column}
-    .course-tools input,.course-tools select{width:100%}
-}
+    .category-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
 
-@media(max-width:520px){
-    .course-grid{grid-template-columns:1fr}
-}
+    .category-tabs button {
+        padding: 8px 14px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: white;
+        color: #475569;
+        font-weight: 600;
+    }
+
+    .category-tabs button.active {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: white;
+    }
+
+    .course-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .course-card {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        border-radius: 19px;
+        background: white;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+        transition: .2s;
+    }
+
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 18px 45px rgba(15, 23, 42, .12);
+    }
+
+    .course-image {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 16 / 9;
+        background: #e2e8f0;
+    }
+
+    .course-image img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+    }
+
+    .course-category {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, .82);
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .course-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 18px;
+    }
+
+    .course-body h3 {
+        margin: 0 0 10px;
+        font-size: 18px;
+        line-height: 1.4;
+    }
+
+    .course-description {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 14px;
+        min-height: 68px;
+    }
+
+    .course-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: auto;
+        padding-top: 16px;
+        color: var(--muted);
+        font-size: 12px;
+    }
+
+
+    /* =========================
+       AI
+    ========================= */
+
+    .ai-panel {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 28px;
+        margin-top: 42px;
+        padding: 28px;
+        border: 1px solid #ddd6fe;
+        border-radius: 24px;
+        background: linear-gradient(
+            135deg,
+            #eef2ff,
+            #faf5ff
+        );
+        box-shadow: var(--shadow);
+    }
+
+    .ai-title {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+    }
+
+    .ai-icon {
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        background: #ede9fe;
+        color: var(--purple);
+        font-size: 23px;
+    }
+
+    .ai-title h2 {
+        margin: 0;
+        font-size: 25px;
+    }
+
+    .ai-description {
+        margin: 10px 0 20px;
+        color: var(--muted);
+    }
+
+    .ai-input-row {
+        display: flex;
+        gap: 10px;
+    }
+
+    .ai-input-row input {
+        flex: 1;
+        min-width: 0;
+        padding: 14px 16px;
+        border: 1px solid #cbd5e1;
+        border-radius: 14px;
+        outline: none;
+    }
+
+    .ai-button {
+        padding: 14px 20px;
+        border: none;
+        border-radius: 14px;
+        background: linear-gradient(
+            135deg,
+            #7c3aed,
+            #5b21b6
+        );
+        color: white;
+        font-weight: 700;
+    }
+
+    .ai-examples {
+        padding-left: 22px;
+        border-left: 1px solid #ddd6fe;
+    }
+
+    .ai-examples h4 {
+        margin: 0 0 13px;
+    }
+
+    .example {
+        margin-bottom: 9px;
+        padding: 11px 13px;
+        border: 1px solid #ede9fe;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, .8);
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    #aiResult {
+        display: none;
+        grid-column: 1 / -1;
+        padding-top: 22px;
+        border-top: 1px solid #ddd6fe;
+    }
+
+    .recommend-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+    }
+
+    .recommend-card {
+        padding: 18px;
+        border: 1px solid #e9d5ff;
+        border-radius: 16px;
+        background: white;
+    }
+
+    .recommend-card h3 {
+        margin: 8px 0;
+    }
+
+    .recommend-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+    }
+
+    .score {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #f3e8ff;
+        color: #6d28d9;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .empty {
+        grid-column: 1 / -1;
+        padding: 45px 20px;
+        text-align: center;
+        border: 1px dashed #cbd5e1;
+        border-radius: 18px;
+        background: white;
+        color: var(--muted);
+    }
+
+
+    /* =========================
+       Responsive
+    ========================= */
+
+    @media (max-width: 1400px) {
+        .course-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 1100px) {
+        .course-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 950px) {
+        .hero-content,
+        .ai-panel {
+            grid-template-columns: 1fr;
+        }
+
+        .ai-examples {
+            padding: 20px 0 0;
+            border-left: 0;
+            border-top: 1px solid #ddd6fe;
+        }
+
+        .recommend-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .course-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 650px) {
+        .hero-search,
+        .ai-input-row {
+            flex-direction: column;
+        }
+
+        .course-header {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .course-tools {
+            flex-direction: column;
+        }
+
+        .course-tools input,
+        .course-tools select {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .course-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
-</head>
 
-<body>
+{% endblock %}
 
-<header class="navbar">
-    <div class="container nav-content">
-        <div class="brand">
-            <span class="brand-icon">📖</span>
-            課程管理系統
-        </div>
 
-        <nav class="nav-links">
-            <a class="active" href="/">首頁</a>
-            <a href="#courses">課程列表</a>
-            <a href="#ai">AI 推薦</a>
-            <a href="#">CI/CD Deployment Verified</a>
-        </nav>
-
-        <div class="nav-spacer"></div>
-
-        <div class="nav-search">
-            <input id="topSearch" type="text" placeholder="搜尋課程...">
-        </div>
-
-        <div class="avatar">U</div>
-    </div>
-</header>
+{% block main %}
 
 <section class="hero">
+
     <div class="container hero-content">
+
         <div>
-            <h1>開啟你的 <span>學習旅程</span><br>讓技能創造更多可能</h1>
+
+            <h1>
+                開啟你的
+                <span>學習旅程</span>
+                <br>
+                讓技能創造更多可能
+            </h1>
 
             <p class="hero-description">
-                從程式設計、DevOps、AWS 雲端到資料庫，搭配 AI 智能推薦，
+                從程式設計、DevOps、AWS 雲端到資料庫，
+                搭配 AI 智能推薦，
                 快速找到最符合學習目標的課程。
             </p>
 
             <div class="hero-search">
-                <input id="heroSearch" type="text" placeholder="我想學什麼？例如：Python、AWS、Docker...">
-                <button class="primary-button" onclick="applyHeroSearch()">尋找課程</button>
+
+                <input
+                    id="heroSearch"
+                    type="text"
+                    placeholder="我想學什麼？例如：Python、AWS、Docker..."
+                >
+
+                <button
+                    class="primary-button"
+                    onclick="applyHeroSearch()"
+                >
+                    尋找課程
+                </button>
+
             </div>
 
             <div class="keywords">
+
                 <span>熱門關鍵字：</span>
-                <button class="keyword" onclick="quickSearch('Python')">Python</button>
-                <button class="keyword" onclick="quickSearch('AWS')">AWS</button>
-                <button class="keyword" onclick="quickSearch('Docker')">Docker</button>
-                <button class="keyword" onclick="quickSearch('CI/CD')">CI/CD</button>
-                <button class="keyword" onclick="quickSearch('Database')">資料庫</button>
+
+                <button
+                    class="keyword"
+                    onclick="quickSearch('Python')"
+                >
+                    Python
+                </button>
+
+                <button
+                    class="keyword"
+                    onclick="quickSearch('AWS')"
+                >
+                    AWS
+                </button>
+
+                <button
+                    class="keyword"
+                    onclick="quickSearch('Docker')"
+                >
+                    Docker
+                </button>
+
+                <button
+                    class="keyword"
+                    onclick="quickSearch('CI/CD')"
+                >
+                    CI/CD
+                </button>
+
+                <button
+                    class="keyword"
+                    onclick="quickSearch('Database')"
+                >
+                    資料庫
+                </button>
+
             </div>
+
         </div>
 
+
         <div class="hero-card">
-            <div class="hero-card-icon">🎓</div>
-            <h3>持續學習，成就更好的自己</h3>
+
+            <div class="hero-card-icon">
+                🎓
+            </div>
+
+            <h3>
+                持續學習，成就更好的自己
+            </h3>
 
             <p>
                 課程、雲端與 AI 推薦整合在同一個學習入口，
@@ -248,8 +610,11 @@ footer{padding:30px 0;background:#0f172a;color:#cbd5e1}
             </p>
 
             <div class="stats">
+
                 <div class="stat">
-                    <strong id="courseCount">--</strong>
+                    <strong id="courseCount">
+                        --
+                    </strong>
                     課程
                 </div>
 
@@ -262,375 +627,971 @@ footer{padding:30px 0;background:#0f172a;color:#cbd5e1}
                     <strong>AWS</strong>
                     雲端服務
                 </div>
+
             </div>
+
         </div>
+
     </div>
+
 </section>
 
-<main class="container">
+
+<main class="container home-main">
+
+    <!-- =========================
+         課程列表
+    ========================== -->
 
     <section id="courses">
+
         <div class="course-header">
+
             <div>
-                <h2>精選課程</h2>
-                <p>探索目前可用課程，依分類與關鍵字快速篩選。</p>
+
+                <h2>
+                    精選課程
+                </h2>
+
+                <p>
+                    探索目前可用課程，
+                    依分類與關鍵字快速篩選。
+                </p>
+
             </div>
 
+
             <div class="course-tools">
-                <input id="courseSearch" type="text" placeholder="搜尋課程名稱...">
+
+                <input
+                    id="courseSearch"
+                    type="text"
+                    placeholder="搜尋課程名稱..."
+                >
 
                 <select id="categorySelect">
-                    <option value="">所有分類</option>
+                    <option value="">
+                        所有分類
+                    </option>
                 </select>
 
                 <select id="levelSelect">
-                    <option value="">所有程度</option>
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
+
+                    <option value="">
+                        所有程度
+                    </option>
+
+                    <option value="Beginner">
+                        Beginner
+                    </option>
+
+                    <option value="Intermediate">
+                        Intermediate
+                    </option>
+
+                    <option value="Advanced">
+                        Advanced
+                    </option>
+
                 </select>
+
             </div>
+
         </div>
 
-        <div id="categoryTabs" class="category-tabs">
-            <button class="active" data-category="">全部課程</button>
+
+        <div
+            id="categoryTabs"
+            class="category-tabs"
+        >
+
+            <button
+                class="active"
+                data-category=""
+            >
+                全部課程
+            </button>
+
         </div>
 
-        <div id="courseGrid" class="course-grid">
-            <div class="empty">課程載入中...</div>
+
+        <div
+            id="courseGrid"
+            class="course-grid"
+        >
+
+            <div class="empty">
+                課程載入中...
+            </div>
+
         </div>
+
     </section>
 
-    <section id="ai" class="ai-panel">
+
+    <!-- =========================
+         AI 推薦
+    ========================== -->
+
+    <section
+        id="ai"
+        class="ai-panel"
+    >
+
         <div>
+
             <div class="ai-title">
-                <div class="ai-icon">✦</div>
-                <h2>AI 智能課程推薦</h2>
+
+                <div class="ai-icon">
+                    ✦
+                </div>
+
+                <h2>
+                    AI 智能課程推薦
+                </h2>
+
             </div>
+
 
             <p class="ai-description">
-                告訴我們你的學習目標，AI 將從目前系統中的課程找出最相關的選項。
+                告訴我們你的學習目標，
+                AI 將從目前系統中的課程找出最相關的選項。
             </p>
 
+
             <div class="ai-input-row">
-                <input id="goalInput" type="text" placeholder="例如：我想學 AWS 雲端部署與 CI/CD">
-                <button id="recommendButton" class="ai-button" onclick="recommendCourses()">✦ 取得推薦</button>
+
+                <input
+                    id="goalInput"
+                    type="text"
+                    placeholder="例如：我想學 AWS 雲端部署與 CI/CD"
+                >
+
+                <button
+                    id="recommendButton"
+                    class="ai-button"
+                    onclick="recommendCourses()"
+                >
+                    ✦ 取得推薦
+                </button>
+
             </div>
+
         </div>
+
 
         <div class="ai-examples">
-            <h4>推薦範例</h4>
-            <div class="example" onclick="setGoal('我想學 Docker 和容器化技術')">我想學 Docker 和容器化技術 →</div>
-            <div class="example" onclick="setGoal('我想了解 AWS 雲端服務')">我想了解 AWS 雲端服務 →</div>
-            <div class="example" onclick="setGoal('我想建立 CI/CD 自動部署流程')">我想建立 CI/CD 自動部署流程 →</div>
+
+            <h4>
+                推薦範例
+            </h4>
+
+            <div
+                class="example"
+                onclick="setGoal('我想學 Docker 和容器化技術')"
+            >
+                我想學 Docker 和容器化技術 →
+            </div>
+
+            <div
+                class="example"
+                onclick="setGoal('我想了解 AWS 雲端服務')"
+            >
+                我想了解 AWS 雲端服務 →
+            </div>
+
+            <div
+                class="example"
+                onclick="setGoal('我想建立 CI/CD 自動部署流程')"
+            >
+                我想建立 CI/CD 自動部署流程 →
+            </div>
+
         </div>
 
-        <div id="aiResult"></div>
-    </section>
 
-    
+        <div id="aiResult"></div>
+
+    </section>
 
 </main>
 
-<footer>
-    <div class="container">
-        課程管理系統 · Flask · AWS · RDS · S3 · Bedrock · CI/CD
-    </div>
-</footer>
+{% endblock %}
+
+
+{% block scripts %}
 
 <script>
-let allCourses = [];
-let activeCategory = "";
+    let allCourses = [];
+    let activeCategory = "";
 
-const descriptions = {
-    Programming: "建立程式設計基礎，培養實作與問題解決能力。",
-    DevOps: "學習容器、CI/CD 與開發維運相關實務技能。",
-    Cloud: "掌握 AWS 雲端服務與部署架構基礎。",
-    Database: "學習資料庫操作、設計與管理相關技術。"
-};
 
-async function loadCourses() {
-    const grid = document.getElementById("courseGrid");
+    const descriptions = {
+        Programming:
+            "建立程式設計基礎，培養實作與問題解決能力。",
 
-    try {
-        const response = await fetch("/courses");
+        DevOps:
+            "學習容器、CI/CD 與開發維運相關實務技能。",
 
-        if (!response.ok) {
-            throw new Error("課程載入失敗");
-        }
+        Cloud:
+            "掌握 AWS 雲端服務與部署架構基礎。",
 
-        allCourses = await response.json();
+        Database:
+            "學習資料庫操作、設計與管理相關技術。"
+    };
 
-        document.getElementById("courseCount").textContent = allCourses.length;
 
-        buildCategories();
-        renderCourses();
+    async function loadCourses() {
 
-    } catch (error) {
-        grid.innerHTML = `
-            <div class="empty">
-                無法載入課程資料<br>
-                ${escapeHtml(error.message)}
-            </div>
-        `;
-    }
-}
+        const grid =
+            document.getElementById("courseGrid");
 
-function buildCategories() {
-    const categories = [...new Set(allCourses.map(course => course.category).filter(Boolean))];
+        try {
 
-    const tabs = document.getElementById("categoryTabs");
-    const select = document.getElementById("categorySelect");
+            const response =
+                await fetch("/courses");
 
-    tabs.innerHTML = `<button class="active" data-category="">全部課程</button>`;
-    select.innerHTML = `<option value="">所有分類</option>`;
+            if (!response.ok) {
+                throw new Error(
+                    "課程載入失敗"
+                );
+            }
 
-    categories.forEach(category => {
-        tabs.insertAdjacentHTML(
-            "beforeend",
-            `<button data-category="${escapeHtml(category)}">${escapeHtml(category)}</button>`
-        );
+            allCourses =
+                await response.json();
 
-        select.insertAdjacentHTML(
-            "beforeend",
-            `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`
-        );
-    });
+            document
+                .getElementById("courseCount")
+                .textContent =
+                allCourses.length;
 
-    tabs.querySelectorAll("button").forEach(button => {
-        button.addEventListener("click", () => {
-            tabs.querySelectorAll("button").forEach(item => item.classList.remove("active"));
-
-            button.classList.add("active");
-
-            activeCategory = button.dataset.category;
-            select.value = activeCategory;
+            buildCategories();
 
             renderCourses();
-        });
-    });
-}
 
-function renderCourses() {
-    const search = document.getElementById("courseSearch").value.trim().toLowerCase();
-    const category = document.getElementById("categorySelect").value || activeCategory;
-    const level = document.getElementById("levelSelect").value;
+        } catch (error) {
 
-    const filteredCourses = allCourses.filter(course => {
-        const searchText = [course.name, course.category, course.level]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase();
-
-        return (
-            (!search || searchText.includes(search)) &&
-            (!category || course.category === category) &&
-            (!level || course.level === level)
-        );
-    });
-
-    const grid = document.getElementById("courseGrid");
-
-    if (filteredCourses.length === 0) {
-        grid.innerHTML = `<div class="empty">目前找不到符合條件的課程。</div>`;
-        return;
-    }
-
-    grid.innerHTML = filteredCourses.map(course => {
-        const description =
-            course.description ||
-            descriptions[course.category] ||
-            "探索此課程內容，建立相關領域的基礎與實作能力。";
-
-        const image = course.image_url
-            ? `<img src="${escapeHtml(course.image_url)}" alt="${escapeHtml(course.name)}">`
-            : `<div style="height:100%;display:grid;place-items:center;font-size:50px;">📘</div>`;
-
-        return `
-            <article class="course-card">
-                <div class="course-image">
-                    ${image}
-                    <span class="course-category">
-                        ${escapeHtml(course.category || "Course")}
-                    </span>
+            grid.innerHTML = `
+                <div class="empty">
+                    無法載入課程資料
+                    <br>
+                    ${escapeHtml(error.message)}
                 </div>
+            `;
 
-                <div class="course-body">
-                    <h3>${escapeHtml(course.name)}</h3>
-
-                    <p class="course-description">
-                        ${escapeHtml(description)}
-                    </p>
-
-                    <div class="course-meta">
-                        <span>📚 ${escapeHtml(course.category || "-")}</span>
-                        <span>▥ ${escapeHtml(course.level || "-")}</span>
-                    </div>
-                </div>
-            </article>
-        `;
-    }).join("");
-}
-
-async function recommendCourses() {
-    const goalInput = document.getElementById("goalInput");
-    const result = document.getElementById("aiResult");
-    const button = document.getElementById("recommendButton");
-
-    const goal = goalInput.value.trim();
-
-    result.style.display = "block";
-
-    if (!goal) {
-        result.innerHTML = `<div class="empty">請先輸入你的學習目標。</div>`;
-        return;
-    }
-
-    button.disabled = true;
-    button.textContent = "推薦中...";
-
-    result.innerHTML = `<div class="empty">AI 正在分析目前課程...</div>`;
-
-    try {
-        const response = await fetch("/recommend", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                goal: goal
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || "AI 推薦失敗");
         }
 
-        const recommendations = data.recommendations || [];
+    }
 
-        if (recommendations.length === 0) {
-            result.innerHTML = `<div class="empty">目前沒有符合你學習目標的課程。</div>`;
+
+    function buildCategories() {
+
+        const categories = [
+            ...new Set(
+                allCourses
+                    .map(course => course.category)
+                    .filter(Boolean)
+            )
+        ];
+
+
+        const tabs =
+            document.getElementById(
+                "categoryTabs"
+            );
+
+        const select =
+            document.getElementById(
+                "categorySelect"
+            );
+
+
+        tabs.innerHTML = `
+            <button
+                class="active"
+                data-category=""
+            >
+                全部課程
+            </button>
+        `;
+
+
+        select.innerHTML = `
+            <option value="">
+                所有分類
+            </option>
+        `;
+
+
+        categories.forEach(category => {
+
+            tabs.insertAdjacentHTML(
+                "beforeend",
+                `
+                    <button
+                        data-category="${escapeHtml(category)}"
+                    >
+                        ${escapeHtml(category)}
+                    </button>
+                `
+            );
+
+
+            select.insertAdjacentHTML(
+                "beforeend",
+                `
+                    <option
+                        value="${escapeHtml(category)}"
+                    >
+                        ${escapeHtml(category)}
+                    </option>
+                `
+            );
+
+        });
+
+
+        tabs
+            .querySelectorAll("button")
+            .forEach(button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        tabs
+                            .querySelectorAll(
+                                "button"
+                            )
+                            .forEach(item =>
+                                item
+                                    .classList
+                                    .remove("active")
+                            );
+
+
+                        button
+                            .classList
+                            .add("active");
+
+
+                        activeCategory =
+                            button.dataset.category;
+
+
+                        select.value =
+                            activeCategory;
+
+
+                        renderCourses();
+
+                    }
+                );
+
+            });
+
+    }
+
+
+    function renderCourses() {
+
+        const search =
+            document
+                .getElementById("courseSearch")
+                .value
+                .trim()
+                .toLowerCase();
+
+
+        const category =
+            document
+                .getElementById("categorySelect")
+                .value
+            || activeCategory;
+
+
+        const level =
+            document
+                .getElementById("levelSelect")
+                .value;
+
+
+        const filteredCourses =
+            allCourses.filter(course => {
+
+                const searchText = [
+                    course.name,
+                    course.category,
+                    course.level
+                ]
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
+
+
+                return (
+                    (!search ||
+                        searchText.includes(search))
+                    &&
+                    (!category ||
+                        course.category === category)
+                    &&
+                    (!level ||
+                        course.level === level)
+                );
+
+            });
+
+
+        const grid =
+            document.getElementById(
+                "courseGrid"
+            );
+
+
+        if (
+            filteredCourses.length === 0
+        ) {
+
+            grid.innerHTML = `
+                <div class="empty">
+                    目前找不到符合條件的課程。
+                </div>
+            `;
+
             return;
         }
 
-        result.innerHTML = `
-            <h3>推薦結果</h3>
 
-            <div class="recommend-grid">
-                ${recommendations.map(recommendation => `
-                    <div class="recommend-card">
-                        <span class="score">
-                            相關度 ${escapeHtml(recommendation.relevance_score)}
-                        </span>
+        grid.innerHTML =
+            filteredCourses
+                .map(course => {
 
-                        <h3>
-                            ${escapeHtml(recommendation.course_name)}
-                        </h3>
+                    const description =
+                        course.description
+                        ||
+                        descriptions[
+                            course.category
+                        ]
+                        ||
+                        "探索此課程內容，建立相關領域的基礎與實作能力。";
 
-                        <div style="color:#64748b;font-size:13px;margin-bottom:8px;">
-                            ${escapeHtml(recommendation.category || "")}
-                            ${recommendation.level ? " · " + escapeHtml(recommendation.level) : ""}
-                        </div>
 
-                        <p>
-                            ${escapeHtml(recommendation.reason || "")}
-                        </p>
-                    </div>
-                `).join("")}
-            </div>
-        `;
+                    const image =
+                        course.image_url
+                            ? `
+                                <img
+                                    src="${escapeHtml(course.image_url)}"
+                                    alt="${escapeHtml(course.name)}"
+                                >
+                            `
+                            : `
+                                <div
+                                    style="
+                                        height:100%;
+                                        display:grid;
+                                        place-items:center;
+                                        font-size:50px;
+                                    "
+                                >
+                                    📘
+                                </div>
+                            `;
 
-    } catch (error) {
+
+                    return `
+                        <article class="course-card">
+
+                            <div class="course-image">
+
+                                ${image}
+
+                                <span class="course-category">
+                                    ${
+                                        escapeHtml(
+                                            course.category
+                                            || "Course"
+                                        )
+                                    }
+                                </span>
+
+                            </div>
+
+
+                            <div class="course-body">
+
+                                <h3>
+                                    ${escapeHtml(course.name)}
+                                </h3>
+
+
+                                <p class="course-description">
+                                    ${escapeHtml(description)}
+                                </p>
+
+
+                                <div class="course-meta">
+
+                                    <span>
+                                        📚
+                                        ${
+                                            escapeHtml(
+                                                course.category
+                                                || "-"
+                                            )
+                                        }
+                                    </span>
+
+                                    <span>
+                                        ▥
+                                        ${
+                                            escapeHtml(
+                                                course.level
+                                                || "-"
+                                            )
+                                        }
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </article>
+                    `;
+
+                })
+                .join("");
+
+    }
+
+
+    async function recommendCourses() {
+
+        const goalInput =
+            document.getElementById(
+                "goalInput"
+            );
+
+        const result =
+            document.getElementById(
+                "aiResult"
+            );
+
+        const button =
+            document.getElementById(
+                "recommendButton"
+            );
+
+
+        const goal =
+            goalInput.value.trim();
+
+
+        result.style.display =
+            "block";
+
+
+        if (!goal) {
+
+            result.innerHTML = `
+                <div class="empty">
+                    請先輸入你的學習目標。
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        button.disabled = true;
+
+        button.textContent =
+            "推薦中...";
+
+
         result.innerHTML = `
             <div class="empty">
-                AI 推薦目前無法使用<br>
-                ${escapeHtml(error.message)}
+                AI 正在分析目前課程...
             </div>
         `;
 
-    } finally {
-        button.disabled = false;
-        button.textContent = "✦ 取得推薦";
+
+        try {
+
+            const response =
+                await fetch(
+                    "/recommend",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            goal: goal
+                        })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error
+                    || "AI 推薦失敗"
+                );
+
+            }
+
+
+            const recommendations =
+                data.recommendations
+                || [];
+
+
+            if (
+                recommendations.length === 0
+            ) {
+
+                result.innerHTML = `
+                    <div class="empty">
+                        目前沒有符合你學習目標的課程。
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            result.innerHTML = `
+                <h3>
+                    推薦結果
+                </h3>
+
+                <div class="recommend-grid">
+
+                    ${
+                        recommendations
+                            .map(
+                                recommendation => `
+                                    <div class="recommend-card">
+
+                                        <span class="score">
+                                            相關度
+                                            ${
+                                                escapeHtml(
+                                                    recommendation
+                                                        .relevance_score
+                                                )
+                                            }
+                                        </span>
+
+                                        <h3>
+                                            ${
+                                                escapeHtml(
+                                                    recommendation
+                                                        .course_name
+                                                )
+                                            }
+                                        </h3>
+
+                                        <div
+                                            style="
+                                                color:#64748b;
+                                                font-size:13px;
+                                                margin-bottom:8px;
+                                            "
+                                        >
+                                            ${
+                                                escapeHtml(
+                                                    recommendation
+                                                        .category
+                                                    || ""
+                                                )
+                                            }
+
+                                            ${
+                                                recommendation.level
+                                                    ? " · "
+                                                    + escapeHtml(
+                                                        recommendation
+                                                            .level
+                                                    )
+                                                    : ""
+                                            }
+                                        </div>
+
+                                        <p>
+                                            ${
+                                                escapeHtml(
+                                                    recommendation
+                                                        .reason
+                                                    || ""
+                                                )
+                                            }
+                                        </p>
+
+                                    </div>
+                                `
+                            )
+                            .join("")
+                    }
+
+                </div>
+            `;
+
+
+        } catch (error) {
+
+            result.innerHTML = `
+                <div class="empty">
+                    AI 推薦目前無法使用
+                    <br>
+                    ${escapeHtml(error.message)}
+                </div>
+            `;
+
+
+        } finally {
+
+            button.disabled =
+                false;
+
+            button.textContent =
+                "✦ 取得推薦";
+
+        }
+
     }
-}
 
-function setGoal(text) {
-    const input = document.getElementById("goalInput");
 
-    input.value = text;
-    input.focus();
-}
+    function setGoal(text) {
 
-function quickSearch(keyword) {
-    document.getElementById("courseSearch").value = keyword;
-    document.getElementById("heroSearch").value = keyword;
+        const input =
+            document.getElementById(
+                "goalInput"
+            );
 
-    renderCourses();
+        input.value = text;
 
-    document.getElementById("courses").scrollIntoView({
-        behavior: "smooth"
-    });
-}
+        input.focus();
 
-function applyHeroSearch() {
-    const keyword = document.getElementById("heroSearch").value.trim();
+    }
 
-    document.getElementById("courseSearch").value = keyword;
 
-    renderCourses();
+    function quickSearch(keyword) {
 
-    document.getElementById("courses").scrollIntoView({
-        behavior: "smooth"
-    });
-}
+        document
+            .getElementById("courseSearch")
+            .value =
+            keyword;
 
-function escapeHtml(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
 
-document.getElementById("courseSearch").addEventListener("input", renderCourses);
+        document
+            .getElementById("heroSearch")
+            .value =
+            keyword;
 
-document.getElementById("categorySelect").addEventListener("change", event => {
-    activeCategory = event.target.value;
 
-    document.querySelectorAll("#categoryTabs button").forEach(button => {
-        button.classList.toggle(
-            "active",
-            button.dataset.category === activeCategory
+        const topSearch =
+            document.getElementById(
+                "topSearch"
+            );
+
+
+        if (topSearch) {
+            topSearch.value =
+                keyword;
+        }
+
+
+        renderCourses();
+
+
+        document
+            .getElementById("courses")
+            .scrollIntoView({
+                behavior: "smooth"
+            });
+
+    }
+
+
+    function applyHeroSearch() {
+
+        const keyword =
+            document
+                .getElementById("heroSearch")
+                .value
+                .trim();
+
+
+        document
+            .getElementById("courseSearch")
+            .value =
+            keyword;
+
+
+        const topSearch =
+            document.getElementById(
+                "topSearch"
+            );
+
+
+        if (topSearch) {
+            topSearch.value =
+                keyword;
+        }
+
+
+        renderCourses();
+
+
+        document
+            .getElementById("courses")
+            .scrollIntoView({
+                behavior: "smooth"
+            });
+
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+
+    }
+
+
+    document
+        .getElementById("courseSearch")
+        .addEventListener(
+            "input",
+            renderCourses
         );
-    });
 
-    renderCourses();
-});
 
-document.getElementById("levelSelect").addEventListener("change", renderCourses);
+    document
+        .getElementById("categorySelect")
+        .addEventListener(
+            "change",
+            event => {
 
-document.getElementById("topSearch").addEventListener("input", event => {
-    document.getElementById("courseSearch").value = event.target.value;
-    renderCourses();
-});
+                activeCategory =
+                    event.target.value;
 
-document.getElementById("goalInput").addEventListener("keydown", event => {
-    if (event.key === "Enter") {
-        recommendCourses();
+
+                document
+                    .querySelectorAll(
+                        "#categoryTabs button"
+                    )
+                    .forEach(
+                        button => {
+
+                            button
+                                .classList
+                                .toggle(
+                                    "active",
+                                    button
+                                        .dataset
+                                        .category
+                                    ===
+                                    activeCategory
+                                );
+
+                        }
+                    );
+
+
+                renderCourses();
+
+            }
+        );
+
+
+    document
+        .getElementById("levelSelect")
+        .addEventListener(
+            "change",
+            renderCourses
+        );
+
+
+    const navbarSearch =
+        document.getElementById(
+            "topSearch"
+        );
+
+
+    if (navbarSearch) {
+
+        navbarSearch
+            .addEventListener(
+                "input",
+                event => {
+
+                    document
+                        .getElementById(
+                            "courseSearch"
+                        )
+                        .value =
+                        event.target.value;
+
+
+                    renderCourses();
+
+                }
+            );
+
     }
-});
 
-document.getElementById("heroSearch").addEventListener("keydown", event => {
-    if (event.key === "Enter") {
-        applyHeroSearch();
-    }
-});
 
-loadCourses();
+    document
+        .getElementById("goalInput")
+        .addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key === "Enter"
+                ) {
+                    recommendCourses();
+                }
+
+            }
+        );
+
+
+    document
+        .getElementById("heroSearch")
+        .addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key === "Enter"
+                ) {
+                    applyHeroSearch();
+                }
+
+            }
+        );
+
+
+    loadCourses();
 </script>
 
-</body>
-</html>
+{% endblock %}
