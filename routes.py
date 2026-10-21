@@ -95,6 +95,7 @@ def get_students():
 def get_enrollments():
     use_rds = os.getenv("USE_RDS", "false").lower() == "true"
 
+    # 本機 / CI 使用 Mock Data
     if not use_rds:
         result = []
 
@@ -130,6 +131,7 @@ def get_enrollments():
 
         return jsonify(result)
 
+    # AWS 正式環境使用 RDS
     connection = get_db_connection()
 
     try:

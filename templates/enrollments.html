@@ -136,9 +136,10 @@
 
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>學生</th>
-                        <th>課程</th>
+                        <th>學生姓名</th>
+                        <th>Email</th>
+                        <th>課程名稱</th>
+                        <th>程度</th>
                         <th>報名時間</th>
                     </tr>
                 </thead>
@@ -147,7 +148,7 @@
 
                     <tr>
                         <td
-                            colspan="4"
+                            colspan="5"
                             class="status-message"
                         >
                             載入報名資料中...
@@ -283,7 +284,6 @@ async function loadCourses() {
 
 }
 
-
 async function loadEnrollments() {
 
     try {
@@ -303,7 +303,7 @@ async function loadEnrollments() {
             enrollmentTableBody.innerHTML = `
                 <tr>
                     <td
-                        colspan="4"
+                        colspan="5"
                         class="status-message"
                     >
                         目前沒有報名紀錄
@@ -327,27 +327,27 @@ async function loadEnrollments() {
 
                 return `
                     <tr>
-
                         <td>
-                            ${enrollment.id}
+                            ${escapeHtml(enrollment.student_name || "-")}
                         </td>
 
                         <td>
-                            ${enrollment.student_name
-                                ?? enrollment.student_id}
+                            ${escapeHtml(enrollment.student_email || "-")}
                         </td>
 
                         <td>
                             <span class="badge">
-                                ${enrollment.course_name
-                                    ?? enrollment.course_id}
+                                ${escapeHtml(enrollment.course_name || "-")}
                             </span>
+                        </td>
+
+                        <td>
+                            ${escapeHtml(enrollment.course_level || "-")}
                         </td>
 
                         <td>
                             ${createdAt}
                         </td>
-
                     </tr>
                 `;
 
@@ -360,7 +360,7 @@ async function loadEnrollments() {
         enrollmentTableBody.innerHTML = `
             <tr>
                 <td
-                    colspan="4"
+                    colspan="5"
                     class="status-message error-message"
                 >
                     報名資料載入失敗
@@ -371,7 +371,6 @@ async function loadEnrollments() {
     }
 
 }
-
 
 function formatDate(dateString) {
 
@@ -394,7 +393,6 @@ function formatDate(dateString) {
 
 }
 
-
 function showMessage(message, type) {
 
     formMessage.textContent = message;
@@ -404,6 +402,14 @@ function showMessage(message, type) {
 
 }
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
 
 enrollmentForm.addEventListener(
     "submit",
@@ -502,7 +508,6 @@ enrollmentForm.addEventListener(
 
     }
 );
-
 
 document.addEventListener(
     "DOMContentLoaded",

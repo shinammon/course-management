@@ -1,6 +1,42 @@
 {% extends "base.html" %}
 
-{% block title %}學生管理 | Course Management{% endblock %}
+{% block title %}學生管理 | 課程管理系統{% endblock %}
+
+
+{% block head %}
+
+<style>
+    .student-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .student-count {
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    .student-search {
+        width: min(320px, 100%);
+    }
+
+    @media (max-width: 650px) {
+        .student-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .student-search {
+            width: 100%;
+        }
+    }
+</style>
+
+{% endblock %}
+
 
 {% block content %}
 
@@ -9,10 +45,32 @@
     <p>查看目前系統中的學生基本資料。</p>
 </div>
 
+
+<div class="student-toolbar">
+
+    <div
+        id="studentCount"
+        class="student-count"
+    >
+        學生資料載入中...
+    </div>
+
+    <input
+        id="studentSearch"
+        class="form-control student-search"
+        type="text"
+        placeholder="搜尋姓名或 Email..."
+    >
+
+</div>
+
+
 <div class="card">
 
     <div class="table-wrapper">
+
         <table>
+
             <thead>
                 <tr>
                     <th>學生 ID</th>
@@ -22,13 +80,20 @@
             </thead>
 
             <tbody id="studentTableBody">
+
                 <tr>
-                    <td colspan="3" class="status-message">
+                    <td
+                        colspan="3"
+                        class="status-message"
+                    >
                         載入學生資料中...
                     </td>
                 </tr>
+
             </tbody>
+
         </table>
+
     </div>
 
 </div>
@@ -39,51 +104,181 @@
 {% block scripts %}
 
 <script>
-async function loadStudents() {
-    const tableBody = document.getElementById("studentTableBody");
+    let allStudents = [];
 
-    try {
-        const response = await fetch("/students");
+    const studentTableBody =
+        document.getElementById(
+            "studentTableBody"
+        );
 
-        if (!response.ok) {
-            throw new Error("無法取得學生資料");
-        }
+    const studentSearch =
+        document.getElementById(
+            "studentSearch"
+        );
 
-        const students = await response.json();
+    const studentCount =
+        document.getElementById(
+            "studentCount"
+        );
 
-        if (!students.length) {
-            tableBody.innerHTML = `
+
+    async function loadStudents() {
+
+        try {
+
+            const response =
+                await fetch("/students");
+
+            if (!response.ok) {
+                throw new Error(
+                    "無法取得學生資料"
+                );
+            }
+
+            allStudents =
+                await response.json();
+
+            renderStudents(
+                allStudents
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            studentCount.textContent =
+                "無法取得學生資料";
+
+            studentTableBody.innerHTML = `
                 <tr>
-                    <td colspan="3" class="status-message">
-                        目前沒有學生資料
+                    <td
+                        colspan="3"
+                        class="status-message error-message"
+                    >
+                        學生資料載入失敗
                     </td>
                 </tr>
             `;
-            return;
+
         }
 
-        tableBody.innerHTML = students.map(student => `
-            <tr>
-                <td>${student.id}</td>
-                <td>${student.name}</td>
-                <td>${student.email}</td>
-            </tr>
-        `).join("");
-
-    } catch (error) {
-        console.error(error);
-
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="3" class="status-message error-message">
-                    學生資料載入失敗
-                </td>
-            </tr>
-        `;
     }
-}
 
-document.addEventListener("DOMContentLoaded", loadStudents);
+
+    function renderStudents(students) {
+
+        studentCount.textContent =
+            `共 ${students.length} 位學生`;
+
+
+        if (!students.length) {
+
+            studentTableBody.innerHTML = `
+                <tr>
+                    <td
+                        colspan="3"
+                        class="status-message"
+                    >
+                        找不到符合條件的學生
+                    </td>
+                </tr>
+            `;
+
+            return;
+
+        }
+
+
+        studentTableBody.innerHTML =
+            students.map(student => `
+                <tr>
+
+                    <td>
+                        ${escapeHtml(student.id)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(student.name)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(student.email)}
+                    </td>
+
+                </tr>
+            `).join("");
+
+    }
+
+
+    function filterStudents() {
+
+        const keyword =
+            studentSearch
+                .value
+                .trim()
+                .toLowerCase();
+
+
+        if (!keyword) {
+
+            renderStudents(
+                allStudents
+            );
+
+            return;
+
+        }
+
+
+        const filteredStudents =
+            allStudents.filter(student => {
+
+                const searchText = [
+                    student.name,
+                    student.email
+                ]
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
+
+
+                return searchText.includes(
+                    keyword
+                );
+
+            });
+
+
+        renderStudents(
+            filteredStudents
+        );
+
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+
+    }
+
+
+    studentSearch.addEventListener(
+        "input",
+        filterStudents
+    );
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        loadStudents
+    );
 </script>
 
 {% endblock %}
