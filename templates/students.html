@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}學生管理 | Course Management{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>學生管理</h1>
+    <p>查看目前系統中的學生基本資料。</p>
+</div>
+
+<div class="card">
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>學生 ID</th>
+                    <th>姓名</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+
+            <tbody id="studentTableBody">
+                <tr>
+                    <td colspan="3" class="status-message">
+                        載入學生資料中...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+async function loadStudents() {
+    const tableBody = document.getElementById("studentTableBody");
+
+    try {
+        const response = await fetch("/students");
+
+        if (!response.ok) {
+            throw new Error("無法取得學生資料");
+        }
+
+        const students = await response.json();
+
+        if (!students.length) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="status-message">
+                        目前沒有學生資料
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = students.map(student => `
+            <tr>
+                <td>${student.id}</td>
+                <td>${student.name}</td>
+                <td>${student.email}</td>
+            </tr>
+        `).join("");
+
+    } catch (error) {
+        console.error(error);
+
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="3" class="status-message error-message">
+                    學生資料載入失敗
+                </td>
+            </tr>
+        `;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadStudents);
+</script>
+
+{% endblock %}

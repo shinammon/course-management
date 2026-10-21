@@ -5,7 +5,8 @@ from data import courses, students, enrollments
 from db import get_db_connection
 from ai_service import recommend_courses
 from s3_service import generate_image_url
-from botocore.exceptions import NoCredentialsError
+from datetime import datetime
+from botocore.exceptions import NoCredentialsError, LoginRefreshRequired
 
 api = Blueprint("api", __name__)
 
@@ -56,13 +57,8 @@ def get_courses():
 
         if image_key:
             try:
-                item["image_url"] = generate_image_url(
-                    image_key
-                )
-
-            except NoCredentialsError:
-                # CI / 無 AWS 登入的本機環境
-                # 不讓 S3 credentials 影響課程 API
+                item["image_url"] = generate_image_url(image_key)
+            except (NoCredentialsError, LoginRefreshRequired):
                 item["image_url"] = None
         else:
             item["image_url"] = None
@@ -100,7 +96,39 @@ def get_enrollments():
     use_rds = os.getenv("USE_RDS", "false").lower() == "true"
 
     if not use_rds:
-        return jsonify(enrollments)
+        result = []
+
+        for enrollment in enrollments:
+            student = next(
+                (
+                    student
+                    for student in students
+                    if student["id"] == enrollment["student_id"]
+                ),
+                None
+            )
+
+            course = next(
+                (
+                    course
+                    for course in courses
+                    if course["id"] == enrollment["course_id"]
+                ),
+                None
+            )
+
+            result.append({
+                "id": enrollment["id"],
+                "student_id": enrollment["student_id"],
+                "student_name": student["name"] if student else None,
+                "student_email": student["email"] if student else None,
+                "course_id": enrollment["course_id"],
+                "course_name": course["name"] if course else None,
+                "course_level": course["level"] if course else None,
+                "created_at": enrollment.get("created_at")
+            })
+
+        return jsonify(result)
 
     connection = get_db_connection()
 
@@ -111,8 +139,10 @@ def get_enrollments():
                     e.id,
                     e.student_id,
                     s.name AS student_name,
+                    s.email AS student_email,
                     e.course_id,
                     c.name AS course_name,
+                    c.level AS course_level,
                     e.created_at
                 FROM enrollments e
                 JOIN students s
@@ -153,7 +183,8 @@ def create_enrollment():
         new_enrollment = {
             "id": len(enrollments) + 1,
             "student_id": student_id,
-            "course_id": course_id
+            "course_id": course_id,
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
         enrollments.append(new_enrollment)

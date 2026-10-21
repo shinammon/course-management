@@ -52,6 +52,8 @@ enrollments = [
     {
         "id": 1,
         "student_id": 1,
-        "course_id": 2
-    }
+        "course_id": 2,
+        "created_at": "2026-10-20 14:30:00"
+    },
+
 ]

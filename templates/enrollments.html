@@ -1,0 +1,523 @@
+{% extends "base.html" %}
+
+{% block title %}報名管理 | Course Management{% endblock %}
+
+
+{% block head %}
+
+<style>
+    .enrollment-layout {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    .form-title {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    .enrollment-form {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .table-title {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 6px;
+        background: #fff7e6;
+        color: #b45309;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    @media (max-width: 900px) {
+        .enrollment-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="page-header">
+    <h1>報名管理</h1>
+    <p>建立學生課程報名，並查看目前的報名紀錄。</p>
+</div>
+
+
+<div class="enrollment-layout">
+
+    <!-- 新增報名 -->
+    <div class="card">
+
+        <h2 class="form-title">
+            新增報名
+        </h2>
+
+        <form
+            id="enrollmentForm"
+            class="enrollment-form"
+        >
+
+            <div class="form-group">
+                <label for="studentSelect">
+                    學生
+                </label>
+
+                <select
+                    id="studentSelect"
+                    class="form-control"
+                    required
+                >
+                    <option value="">
+                        載入學生資料中...
+                    </option>
+                </select>
+            </div>
+
+
+            <div class="form-group">
+                <label for="courseSelect">
+                    課程
+                </label>
+
+                <select
+                    id="courseSelect"
+                    class="form-control"
+                    required
+                >
+                    <option value="">
+                        載入課程資料中...
+                    </option>
+                </select>
+            </div>
+
+
+            <button
+                id="submitButton"
+                type="submit"
+                class="btn btn-primary"
+            >
+                建立報名
+            </button>
+
+        </form>
+
+        <div
+            id="formMessage"
+            class="notice"
+        ></div>
+
+    </div>
+
+
+    <!-- 報名紀錄 -->
+    <div class="card">
+
+        <h2 class="table-title">
+            報名紀錄
+        </h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>學生</th>
+                        <th>課程</th>
+                        <th>報名時間</th>
+                    </tr>
+                </thead>
+
+                <tbody id="enrollmentTableBody">
+
+                    <tr>
+                        <td
+                            colspan="4"
+                            class="status-message"
+                        >
+                            載入報名資料中...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+
+const studentSelect =
+    document.getElementById("studentSelect");
+
+const courseSelect =
+    document.getElementById("courseSelect");
+
+const enrollmentTableBody =
+    document.getElementById("enrollmentTableBody");
+
+const enrollmentForm =
+    document.getElementById("enrollmentForm");
+
+const submitButton =
+    document.getElementById("submitButton");
+
+const formMessage =
+    document.getElementById("formMessage");
+
+
+async function loadStudents() {
+
+    try {
+
+        const response = await fetch("/students");
+
+        if (!response.ok) {
+            throw new Error("學生資料載入失敗");
+        }
+
+        const students = await response.json();
+
+        studentSelect.innerHTML = `
+            <option value="">
+                請選擇學生
+            </option>
+        `;
+
+        students.forEach(student => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = student.id;
+
+            option.textContent =
+                `${student.name} (${student.email})`;
+
+            studentSelect.appendChild(option);
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        studentSelect.innerHTML = `
+            <option value="">
+                學生資料載入失敗
+            </option>
+        `;
+
+    }
+
+}
+
+
+async function loadCourses() {
+
+    try {
+
+        const response = await fetch("/courses");
+
+        if (!response.ok) {
+            throw new Error("課程資料載入失敗");
+        }
+
+        const courses = await response.json();
+
+        courseSelect.innerHTML = `
+            <option value="">
+                請選擇課程
+            </option>
+        `;
+
+        courses.forEach(course => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = course.id;
+
+            option.textContent =
+                `${course.name} - ${course.level}`;
+
+            courseSelect.appendChild(option);
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        courseSelect.innerHTML = `
+            <option value="">
+                課程資料載入失敗
+            </option>
+        `;
+
+    }
+
+}
+
+
+async function loadEnrollments() {
+
+    try {
+
+        const response =
+            await fetch("/enrollments");
+
+        if (!response.ok) {
+            throw new Error("報名資料載入失敗");
+        }
+
+        const enrollments =
+            await response.json();
+
+        if (!enrollments.length) {
+
+            enrollmentTableBody.innerHTML = `
+                <tr>
+                    <td
+                        colspan="4"
+                        class="status-message"
+                    >
+                        目前沒有報名紀錄
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+
+        enrollmentTableBody.innerHTML =
+            enrollments.map(enrollment => {
+
+                const createdAt =
+                    enrollment.created_at
+                        ? formatDate(
+                            enrollment.created_at
+                        )
+                        : "-";
+
+                return `
+                    <tr>
+
+                        <td>
+                            ${enrollment.id}
+                        </td>
+
+                        <td>
+                            ${enrollment.student_name
+                                ?? enrollment.student_id}
+                        </td>
+
+                        <td>
+                            <span class="badge">
+                                ${enrollment.course_name
+                                    ?? enrollment.course_id}
+                            </span>
+                        </td>
+
+                        <td>
+                            ${createdAt}
+                        </td>
+
+                    </tr>
+                `;
+
+            }).join("");
+
+    } catch (error) {
+
+        console.error(error);
+
+        enrollmentTableBody.innerHTML = `
+            <tr>
+                <td
+                    colspan="4"
+                    class="status-message error-message"
+                >
+                    報名資料載入失敗
+                </td>
+            </tr>
+        `;
+
+    }
+
+}
+
+
+function formatDate(dateString) {
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+        return dateString;
+    }
+
+    return date.toLocaleString(
+        "zh-TW",
+        {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+
+}
+
+
+function showMessage(message, type) {
+
+    formMessage.textContent = message;
+
+    formMessage.className =
+        `notice ${type}`;
+
+}
+
+
+enrollmentForm.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+        const studentId =
+            Number(studentSelect.value);
+
+        const courseId =
+            Number(courseSelect.value);
+
+
+        if (!studentId || !courseId) {
+
+            showMessage(
+                "請選擇學生與課程",
+                "error"
+            );
+
+            return;
+        }
+
+
+        submitButton.disabled = true;
+
+        submitButton.textContent =
+            "建立中...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/enrollments",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            student_id: studentId,
+                            course_id: courseId
+                        })
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    result.error
+                    || "建立報名失敗"
+                );
+
+            }
+
+
+            showMessage(
+                "報名建立成功",
+                "success"
+            );
+
+
+            enrollmentForm.reset();
+
+
+            await loadEnrollments();
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            showMessage(
+                error.message,
+                "error"
+            );
+
+        } finally {
+
+            submitButton.disabled = false;
+
+            submitButton.textContent =
+                "建立報名";
+
+        }
+
+    }
+);
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async function() {
+
+        await Promise.all([
+            loadStudents(),
+            loadCourses()
+        ]);
+
+        await loadEnrollments();
+
+    }
+);
+
+</script>
+
+{% endblock %}
