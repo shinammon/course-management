@@ -24,5 +24,7 @@
 - CloudWatch 系統監控與 SNS 異常通知
 
 ## AWS 系統架構
+![AWS Architecture](images/architecture.png)
 
 ## CI/CD 自動部署流程
+![CI/CD Workflow](images/CICD.png)
